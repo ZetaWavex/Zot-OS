@@ -3625,7 +3625,7 @@ static void draw_arc(int cx, int cy, int radius, int start_angle, int end_angle,
     static const short sin_t[360] = { 0, 2, 5, 7, 10, 12, 15, 17, 19, 22, 24, 27, 29, 31, 34, 36, 39, 41, 43, 46, 48, 50, 52, 55, 57, 59, 61, 64, 66, 68, 70, 72, 74, 76, 78, 80, 82, 84, 86, 88, 90, 92, 94, 95, 97, 99, 101, 102, 104, 106, 107, 109, 110, 112, 113, 115, 116, 117, 119, 120, 121, 122, 124, 125, 126, 127, 128, 129, 130, 131, 132, 132, 133, 134, 135, 135, 136, 136, 137, 137, 138, 138, 139, 139, 139, 139, 140, 140, 140, 140, 140, 140, 140, 140, 140, 139, 139, 139, 139, 138, 138, 137, 137, 136, 136, 135, 135, 134, 133, 132, 132, 131, 130, 129, 128, 127, 126, 125, 124, 122, 121, 120, 119, 117, 116, 115, 113, 112, 110, 109, 107, 106, 104, 102, 101, 99, 97, 95, 94, 92, 90, 88, 86, 84, 82, 80, 78, 76, 74, 72, 70, 68, 66, 64, 61, 59, 57, 55, 52, 50, 48, 46, 43, 41, 39, 36, 34, 31, 29, 27, 24, 22, 19, 17, 15, 12, 10, 7, 5, 2, 0, -2, -5, -7, -10, -12, -15, -17, -19, -22, -24, -27, -29, -31, -34, -36, -39, -41, -43, -46, -48, -50, -52, -55, -57, -59, -61, -64, -66, -68, -70, -72, -74, -76, -78, -80, -82, -84, -86, -88, -90, -92, -94, -95, -97, -99, -101, -102, -104, -106, -107, -109, -110, -112, -113, -115, -116, -117, -119, -120, -121, -122, -124, -125, -126, -127, -128, -129, -130, -131, -132, -132, -133, -134, -135, -135, -136, -136, -137, -137, -138, -138, -139, -139, -139, -139, -140, -140, -140, -140, -140, -140, -140, -140, -140, -139, -139, -139, -139, -138, -138, -137, -137, -136, -136, -135, -135, -134, -133, -132, -132, -131, -130, -129, -128, -127, -126, -125, -124, -122, -121, -120, -119, -117, -116, -115, -113, -112, -110, -109, -107, -106, -104, -102, -101, -99, -97, -95, -94, -92, -90, -88, -86, -84, -82, -80, -78, -76, -74, -72, -70, -68, -66, -64, -61, -59, -57, -55, -52, -50, -48, -46, -43, -41, -39, -36, -34, -31, -29, -27, -24, -22, -19, -17, -15, -12, -10, -7, -5, -2 };
     static const short cos_t[360] = { 140, 140, 140, 140, 140, 139, 139, 139, 139, 138, 138, 137, 137, 136, 136, 135, 135, 134, 133, 132, 132, 131, 130, 129, 128, 127, 126, 125, 124, 122, 121, 120, 119, 117, 116, 115, 113, 112, 110, 109, 107, 106, 104, 102, 101, 99, 97, 95, 94, 92, 90, 88, 86, 84, 82, 80, 78, 76, 74, 72, 70, 68, 66, 64, 61, 59, 57, 55, 52, 50, 48, 46, 43, 41, 39, 36, 34, 31, 29, 27, 24, 22, 19, 17, 15, 12, 10, 7, 5, 2, 0, -2, -5, -7, -10, -12, -15, -17, -19, -22, -24, -27, -29, -31, -34, -36, -39, -41, -43, -46, -48, -50, -52, -55, -57, -59, -61, -64, -66, -68, -70, -72, -74, -76, -78, -80, -82, -84, -86, -88, -90, -92, -94, -95, -97, -99, -101, -102, -104, -106, -107, -109, -110, -112, -113, -115, -116, -117, -119, -120, -121, -122, -124, -125, -126, -127, -128, -129, -130, -131, -132, -132, -133, -134, -135, -135, -136, -136, -137, -137, -138, -138, -139, -139, -139, -139, -140, -140, -140, -140, -140, -140, -140, -140, -140, -139, -139, -139, -139, -138, -138, -137, -137, -136, -136, -135, -135, -134, -133, -132, -132, -131, -130, -129, -128, -127, -126, -125, -124, -122, -121, -120, -119, -117, -116, -115, -113, -112, -110, -109, -107, -106, -104, -102, -101, -99, -97, -95, -94, -92, -90, -88, -86, -84, -82, -80, -78, -76, -74, -72, -70, -68, -66, -64, -61, -59, -57, -55, -52, -50, -48, -46, -43, -41, -39, -36, -34, -31, -29, -27, -24, -22, -19, -17, -15, -12, -10, -7, -5, -2, 0, 2, 5, 7, 10, 12, 15, 17, 19, 22, 24, 27, 29, 31, 34, 36, 39, 41, 43, 46, 48, 50, 52, 55, 57, 59, 61, 64, 66, 68, 70, 72, 74, 76, 78, 80, 82, 84, 86, 88, 90, 92, 94, 95, 97, 99, 101, 102, 104, 106, 107, 109, 110, 112, 113, 115, 116, 117, 119, 120, 121, 122, 124, 125, 126, 127, 128, 129, 130, 131, 132, 132, 133, 134, 135, 135, 136, 136, 137, 137, 138, 138, 139, 139, 139, 139, 140, 140, 140, 140 };
     int span = ((end_angle - start_angle) % 360 + 360) % 360;
-    for (int a = 0; a <= span; a += 2) {
+    for (int a = 0; a <= span; ++a) {
         int angle = ((start_angle + a) % 360 + 360) % 360;
         int sx = cos_t[angle];
         int sy = sin_t[angle];
@@ -3641,66 +3641,56 @@ static void draw_arc(int cx, int cy, int radius, int start_angle, int end_angle,
 }
 static void draw_loading_screen() {
     render_target = reinterpret_cast<uint32_t*>(backbuffer_address);
-    fill_rect(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), 0x000000);
 
     const int cx = static_cast<int>(screen_width / 2);
     const int cy = static_cast<int>(screen_height / 2);
-
-    draw_logo(cx - 100, cy - 200, 200);
-
-    const int acx = cx;
-    const int acy = cy + 80;
+    const int ly = cy - 160;
+    const int ty = cy + 20;
+    const int acy = cy + 120;
     const int radius = 36;
-    const int box = radius + 10;
-
-    draw_text("Nova OS", cx - 32, acy + radius + 40, 1, 0xCCCCCC);
-    present_backbuffer();
 
     for (int frame = 0; frame < 180; ++frame) {
-        fill_rect(acx - box, acy - box, box * 2, box * 2, 0x000000);
+        fill_rect(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), 0x000000);
+        draw_logo(cx - 80, ly, 160);
+        draw_text("Nova OS", cx - 32, ty, 1, 0xCCCCCC);
 
-        int base = frame * 8;
-        draw_arc(acx, acy, radius, base, base + 90, 4, 0xFFFFFF);
-        draw_arc(acx, acy, radius, base + 120, base + 210, 4, 0xFFFFFF);
-        draw_arc(acx, acy, radius, base + 240, base + 330, 4, 0xFFFFFF);
+        int base = frame * 16;
+        draw_arc(cx, acy, radius, base, base + 90, 4, 0xFFFFFF);
+        draw_arc(cx, acy, radius, base + 120, base + 210, 4, 0xFFFFFF);
+        draw_arc(cx, acy, radius, base + 240, base + 330, 4, 0xFFFFFF);
 
-        present_rect(acx - box, acy - box, box * 2, box * 2);
-        wait_pit_ticks(3);
+        present_backbuffer();
+        wait_pit_ticks(2);
     }
 }
 
 static void draw_shutdown_screen() {
     render_target = reinterpret_cast<uint32_t*>(backbuffer_address);
-    fill_rect(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), 0x000000);
 
     const int cx = static_cast<int>(screen_width / 2);
     const int cy = static_cast<int>(screen_height / 2);
-
-    draw_logo(cx - 100, cy - 200, 200);
-
-    const int acx = cx;
-    const int acy = cy + 80;
+    const int ly = cy - 160;
+    const int ty = cy + 20;
+    const int acy = cy + 120;
     const int radius = 36;
-    const int box = radius + 10;
-
-    draw_text("Shutting down...", cx - 48, acy + radius + 40, 1, 0xCCCCCC);
-    present_backbuffer();
 
     for (int frame = 0; frame < 180; ++frame) {
-        fill_rect(acx - box, acy - box, box * 2, box * 2, 0x000000);
+        fill_rect(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), 0x000000);
+        draw_logo(cx - 80, ly, 160);
+        draw_text("Shutting down...", cx - 48, ty, 1, 0xCCCCCC);
 
-        int base = frame * 8;
-        draw_arc(acx, acy, radius, base, base + 90, 4, 0xFFFFFF);
-        draw_arc(acx, acy, radius, base + 120, base + 210, 4, 0xFFFFFF);
-        draw_arc(acx, acy, radius, base + 240, base + 330, 4, 0xFFFFFF);
+        int base = frame * 16;
+        draw_arc(cx, acy, radius, base, base + 90, 4, 0xFFFFFF);
+        draw_arc(cx, acy, radius, base + 120, base + 210, 4, 0xFFFFFF);
+        draw_arc(cx, acy, radius, base + 240, base + 330, 4, 0xFFFFFF);
 
-        present_rect(acx - box, acy - box, box * 2, box * 2);
-        wait_pit_ticks(3);
+        present_backbuffer();
+        wait_pit_ticks(2);
     }
 
     fill_rect(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), 0x000000);
-    draw_logo(cx - 100, cy - 100, 200);
-    draw_text("Goodbye", cx - 32, cy + 40, 1, 0xCCCCCC);
+    draw_logo(cx - 80, cy - 80, 160);
+    draw_text("Goodbye", cx - 32, cy + 50, 1, 0xCCCCCC);
     present_backbuffer();
     wait_pit_ticks(5);
 }
