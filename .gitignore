@@ -1,0 +1,9 @@
+__pycache__/
+Program/
+.vscode/
+*.exe
+*.bin
+*.zex
+*.o
+*.rgb565
+build/*.h
