@@ -3669,7 +3669,7 @@ static void draw_loading_screen() {
         draw_arc(cx, acy, radius, base + 240, base + 330, 4, 0xFFFFFF);
 
         present_rect(refresh_x, refresh_y, refresh_w, refresh_h);
-        wait_pit_ticks(2);
+        wait_pit_ticks(1);
     }
 }
 
