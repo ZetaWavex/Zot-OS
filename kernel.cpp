@@ -3663,7 +3663,7 @@ static void draw_loading_screen() {
         draw_logo(cx - 80, ly, 160);
         draw_text("Nova OS", cx - 32, ty, 1, 0xCCCCCC);
 
-        int base = frame * 25;
+        int base = frame * 20;
         draw_arc(cx, acy, radius, base, base + 90, 2, 0xFFFFFF);
         draw_arc(cx, acy, radius, base + 120, base + 210, 2, 0xFFFFFF);
         draw_arc(cx, acy, radius, base + 240, base + 330, 2, 0xFFFFFF);
@@ -3693,7 +3693,7 @@ static void draw_shutdown_screen() {
         draw_logo(cx - 80, ly, 160);
         draw_text("Shutting down...", cx - 48, ty, 1, 0xCCCCCC);
 
-        int base = frame * 25;
+        int base = frame * 20;
         draw_arc(cx, acy, radius, base, base + 90, 2, 0xFFFFFF);
         draw_arc(cx, acy, radius, base + 120, base + 210, 2, 0xFFFFFF);
         draw_arc(cx, acy, radius, base + 240, base + 330, 2, 0xFFFFFF);
