@@ -3673,6 +3673,64 @@ static void draw_loading_screen() {
     }
 }
 
+static uint8_t read_scan_code() {
+    for (;;) {
+        const uint8_t status = in8(0x64);
+        if ((status & 1) != 0) {
+            const uint8_t sc = in8(0x60);
+            if ((status & 0x20) != 0) continue;
+            if ((sc & 0x80) != 0) continue;
+            return sc;
+        }
+        __asm__ volatile("pause");
+    }
+}
+
+static void draw_login_screen() {
+    render_target = reinterpret_cast<uint32_t*>(backbuffer_address);
+
+    const int cx = static_cast<int>(screen_width / 2);
+    const int cy = static_cast<int>(screen_height / 2);
+    const int ly = cy - 160;
+    const int acy = cy - 40;
+    const int radius = 20;
+
+    int refresh_x = cx - 150;
+    int refresh_y = ly - 10;
+    int refresh_w = 300;
+    int refresh_h = (acy + radius + 10) - refresh_y;
+
+    int base = 0;
+    int frame = 0;
+
+    fill_rect(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), 0x000000);
+
+    for (;;) {
+        fill_rect(refresh_x, refresh_y, refresh_w, refresh_h, 0x000000);
+        draw_logo(cx - 80, ly, 160);
+        draw_text("Nova OS", cx - 32, ly + 170, 1, 0xCCCCCC);
+
+        draw_arc(cx, acy, radius, base, base + 90, 2, 0xFFFFFF);
+        draw_arc(cx, acy, radius, base + 120, base + 210, 2, 0xFFFFFF);
+        draw_arc(cx, acy, radius, base + 240, base + 330, 2, 0xFFFFFF);
+
+        present_rect(refresh_x, refresh_y, refresh_w, refresh_h);
+
+        if ((in8(0x64) & 1) != 0) {
+            uint8_t sc = in8(0x60);
+            if ((sc & 0x80) == 0 && sc != 0xE0 && sc != 0x01) {
+                fill_rect(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), 0x000000);
+                present_backbuffer();
+                return;
+            }
+        }
+
+        base += 20;
+        ++frame;
+        wait_pit_ticks(1);
+    }
+}
+
 static void draw_shutdown_screen() {
     render_target = reinterpret_cast<uint32_t*>(backbuffer_address);
 
@@ -4038,6 +4096,7 @@ extern "C" __attribute__((noreturn)) void kernel_main(
         for (;;) __asm__ volatile("cli; hlt");
     }
     draw_loading_screen();
+    draw_login_screen();
     draw_desktop();
     initialize_mouse();
     draw_mouse_cursor();
