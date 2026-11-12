@@ -7,3 +7,4 @@ Program/
 *.o
 *.rgb565
 build/*.h
+Chat.txt
