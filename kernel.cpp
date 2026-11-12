@@ -3650,8 +3650,8 @@ static void draw_loading_screen() {
     const int cy = static_cast<int>(screen_height / 2);
     const int ly = cy - 160;
     const int ty = cy + 20;
-    const int acy = cy + 120;
-    const int radius = 36;
+    const int acy = cy + 80;
+    const int radius = 14;
 
     int refresh_x = cx - 100;
     int refresh_y = ly - 10;
@@ -3663,10 +3663,10 @@ static void draw_loading_screen() {
         draw_logo(cx - 80, ly, 160);
         draw_text("Nova OS", cx - 32, ty, 1, 0xCCCCCC);
 
-        int base = frame * 6;
-        draw_arc(cx, acy, radius, base, base + 90, 4, 0xFFFFFF);
-        draw_arc(cx, acy, radius, base + 120, base + 210, 4, 0xFFFFFF);
-        draw_arc(cx, acy, radius, base + 240, base + 330, 4, 0xFFFFFF);
+        int base = frame * 30;
+        draw_arc(cx, acy, radius, base, base + 90, 2, 0xFFFFFF);
+        draw_arc(cx, acy, radius, base + 120, base + 210, 2, 0xFFFFFF);
+        draw_arc(cx, acy, radius, base + 240, base + 330, 2, 0xFFFFFF);
 
         present_rect(refresh_x, refresh_y, refresh_w, refresh_h);
         wait_pit_ticks(1);
@@ -3680,8 +3680,8 @@ static void draw_shutdown_screen() {
     const int cy = static_cast<int>(screen_height / 2);
     const int ly = cy - 160;
     const int ty = cy + 20;
-    const int acy = cy + 120;
-    const int radius = 36;
+    const int acy = cy + 80;
+    const int radius = 14;
 
     int refresh_x = cx - 100;
     int refresh_y = ly - 10;
@@ -3693,13 +3693,13 @@ static void draw_shutdown_screen() {
         draw_logo(cx - 80, ly, 160);
         draw_text("Shutting down...", cx - 48, ty, 1, 0xCCCCCC);
 
-        int base = frame * 6;
-        draw_arc(cx, acy, radius, base, base + 90, 4, 0xFFFFFF);
-        draw_arc(cx, acy, radius, base + 120, base + 210, 4, 0xFFFFFF);
-        draw_arc(cx, acy, radius, base + 240, base + 330, 4, 0xFFFFFF);
+        int base = frame * 30;
+        draw_arc(cx, acy, radius, base, base + 90, 2, 0xFFFFFF);
+        draw_arc(cx, acy, radius, base + 120, base + 210, 2, 0xFFFFFF);
+        draw_arc(cx, acy, radius, base + 240, base + 330, 2, 0xFFFFFF);
 
         present_rect(refresh_x, refresh_y, refresh_w, refresh_h);
-        wait_pit_ticks(2);
+        wait_pit_ticks(1);
     }
 
     fill_rect(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), 0x000000);
