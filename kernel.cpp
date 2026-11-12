@@ -14,6 +14,8 @@ static void draw_start_menu_actions();
 static void restore_mouse_cursor();
 static void draw_mouse_cursor();
 static void handle_mouse_packet();
+static bool initialize_mouse();
+static bool wait_mouse_input_ready();
 static void close_context_menu();
 static void refresh_file_manager_volume();
 static void reload_file_manager_directory();
@@ -3692,10 +3694,23 @@ static void draw_login_screen() {
     const int cx = static_cast<int>(screen_width / 2);
     const int cy = static_cast<int>(screen_height / 2);
 
-    const int pw = 520;
-    const int ph = 520;
+    const int pw = 560;
+    const int ph = 560;
     const int px = cx - pw / 2;
     const int py = cy - ph / 2;
+
+    const int box_x = px + 120;
+    const int box_y = py + 300;
+    const int box_w = pw - 240;
+    const int box_h = 44;
+
+    const int btn_w = 180;
+    const int btn_h = 48;
+    const int btn_x = cx - btn_w / 2;
+    const int btn_y = py + 420;
+
+    mouse_x = cx;
+    mouse_y = cy;
 
     fill_rect(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), 0x000000);
 
@@ -3708,17 +3723,12 @@ static void draw_login_screen() {
     fill_rect(px + 4, py + 34, pw - 8, 12, 0x17466D);
     draw_text("Nova OS", px + 20, py + 15, 1, 0xFFFFFF);
 
-    draw_logo(cx - 50, py + 70, 100);
+    draw_logo(cx - 60, py + 60, 120);
 
-    draw_text("Nova OS", cx - 32, py + 200, 1, 0xE3EDF7);
-    draw_text("Welcome back", cx - 49, py + 230, 1, 0x9BB1C8);
+    draw_text("Nova OS", cx - 32, py + 210, 1, 0xE3EDF7);
+    draw_text("Welcome back", cx - 49, py + 240, 1, 0x9BB1C8);
 
-    const int box_x = px + 80;
-    const int box_y = py + 300;
-    const int box_w = pw - 160;
-    const int box_h = 42;
-
-    draw_text("Password:", box_x, py + 285, 1, 0x9BB1C8);
+    draw_text("Password:", box_x, py + 280, 1, 0x9BB1C8);
 
     char password[32];
     uint32_t password_len = 0;
@@ -3746,27 +3756,98 @@ static void draw_login_screen() {
                       cx - 116, py + 360, 1, 0x667788);
         }
 
-        present_rect(box_x - 10, box_y - 20, box_w + 20, 100);
+        present_rect(box_x - 20, py + 275, box_w + 40, 100);
     };
 
-    fill_rounded_rect_gradient(px + 160, py + 410, pw - 320, 44, 8,
-                               0x28618C, 0x17466D);
-    fill_rect(px + 160, py + 442, pw - 320, 12, 0x17466D);
-    draw_text("Sign in", cx - 28, py + 424, 1, 0xFFFFFF);
+    auto draw_sign_in_button = [&](bool hover) {
+        fill_rounded_rect_gradient(btn_x, btn_y, btn_w, btn_h, 8,
+                                   hover ? 0x3A7BAE : 0x28618C,
+                                   hover ? 0x2A5A87 : 0x17466D);
+        fill_rect(btn_x, btn_y + btn_h - 12, btn_w, 12,
+                  hover ? 0x2A5A87 : 0x17466D);
+        draw_text("Sign in", cx - 28, btn_y + 14, 1, 0xFFFFFF);
+        present_rect(btn_x - 4, btn_y - 4, btn_w + 8, btn_h + 8);
+    };
+
+    draw_sign_in_button(false);
 
     draw_text("Enter: sign in    Backspace: delete    Esc: skip",
-              cx - 175, py + 475, 1, 0x667788);
+              cx - 175, py + 500, 1, 0x556677);
 
     present_backbuffer();
     redraw_password_box();
 
+    initialize_mouse();
+    draw_mouse_cursor();
+
+    auto try_validate = [&]() -> bool {
+        password[password_len] = '\0';
+        if (password_len == 4 &&
+            password[0] == '1' && password[1] == '2' &&
+            password[2] == '3' && password[3] == '4') {
+            restore_mouse_cursor();
+            fill_rect(0, 0, static_cast<int>(screen_width),
+                      static_cast<int>(screen_height), 0x000000);
+            present_backbuffer();
+            return true;
+        } else {
+            show_error = true;
+            password_len = 0;
+            redraw_password_box();
+            return false;
+        }
+    };
+
+    bool button_hovered = false;
+    bool button_pressed = false;
+
     for (;;) {
         if ((in8(0x64) & 1) != 0) {
             uint8_t sc = in8(0x60);
+            uint8_t status = in8(0x64);
+            if ((status & 0x20) != 0) {
+                if (sc == 0xF8 && wait_mouse_input_ready()) {
+                    mouse_packet[0] = in8(0x60);
+                    mouse_packet[1] = in8(0x60);
+                    mouse_packet[2] = in8(0x60);
+                    restore_mouse_cursor();
+                    handle_mouse_packet();
+                    draw_mouse_cursor();
+
+                    bool in_button = mouse_x >= btn_x && mouse_x <= btn_x + btn_w &&
+                                     mouse_y >= btn_y && mouse_y <= btn_y + btn_h;
+
+                    if (in_button != button_hovered) {
+                        button_hovered = in_button;
+                        draw_sign_in_button(button_hovered);
+                    }
+
+                    if (button_pressed && !in_button) {
+                        button_pressed = false;
+                    }
+
+                    if (mouse_buttons & 1) {
+                        if (in_button && !button_pressed) {
+                            button_pressed = true;
+                        }
+                    } else {
+                        if (button_pressed && in_button) {
+                            button_pressed = false;
+                            if (try_validate()) return;
+                        } else {
+                            button_pressed = false;
+                        }
+                    }
+                    continue;
+                }
+                continue;
+            }
+
             if ((sc & 0x80) != 0) continue;
             if (sc == 0xE0) continue;
 
             if (sc == 0x01) {
+                restore_mouse_cursor();
                 fill_rect(0, 0, static_cast<int>(screen_width),
                           static_cast<int>(screen_height), 0x000000);
                 present_backbuffer();
@@ -3784,19 +3865,7 @@ static void draw_login_screen() {
             }
 
             if (sc == 0x1C) {
-                password[password_len] = '\0';
-                if (password_len == 4 &&
-                    password[0] == '1' && password[1] == '2' &&
-                    password[2] == '3' && password[3] == '4') {
-                    fill_rect(0, 0, static_cast<int>(screen_width),
-                              static_cast<int>(screen_height), 0x000000);
-                    present_backbuffer();
-                    return;
-                } else {
-                    show_error = true;
-                    password_len = 0;
-                    redraw_password_box();
-                }
+                try_validate();
                 continue;
             }
 
