@@ -3664,9 +3664,9 @@ static void draw_loading_screen() {
         draw_text("Nova OS", cx - 32, ty, 1, 0xCCCCCC);
 
         int base = frame * 20;
-        draw_arc(cx, acy, radius, base, base + 90, 2, 0xFFFFFF);
-        draw_arc(cx, acy, radius, base + 120, base + 210, 2, 0xFFFFFF);
-        draw_arc(cx, acy, radius, base + 240, base + 330, 2, 0xFFFFFF);
+        draw_arc(cx, acy, radius, base, base + 90, 4, 0xFFFFFF);
+        draw_arc(cx, acy, radius, base + 120, base + 210, 4, 0xFFFFFF);
+        draw_arc(cx, acy, radius, base + 240, base + 330, 4, 0xFFFFFF);
 
         present_rect(refresh_x, refresh_y, refresh_w, refresh_h);
         wait_pit_ticks(1);
@@ -3691,46 +3691,122 @@ static void draw_login_screen() {
 
     const int cx = static_cast<int>(screen_width / 2);
     const int cy = static_cast<int>(screen_height / 2);
-    const int ly = cy - 160;
-    const int ty = cy + 20;
-    const int acy = cy + 80;
-    const int radius = 20;
-    const int hy = acy + radius + 30;
 
-    int refresh_x = cx - 150;
-    int refresh_y = ly - 10;
-    int refresh_w = 300;
-    int refresh_h = (hy + 20) - refresh_y;
-
-    int base = 0;
-    int frame = 0;
+    const int pw = 520;
+    const int ph = 520;
+    const int px = cx - pw / 2;
+    const int py = cy - ph / 2;
 
     fill_rect(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), 0x000000);
 
+    fill_rounded_rect_gradient(px, py, pw, ph, 14,
+                               0xFF52718D, 0xFF1A2E43);
+    fill_rounded_rect_gradient(px + 2, py + 2, pw - 4, ph - 4, 12,
+                               0xF0182B40, 0xE80F1D2B);
+    fill_rounded_rect_gradient(px + 4, py + 4, pw - 8, 42, 10,
+                               0x28618C, 0x17466D);
+    fill_rect(px + 4, py + 34, pw - 8, 12, 0x17466D);
+    draw_text("Nova OS", px + 20, py + 15, 1, 0xFFFFFF);
+
+    draw_logo(cx - 50, py + 70, 100);
+
+    draw_text("Nova OS", cx - 32, py + 200, 1, 0xE3EDF7);
+    draw_text("Welcome back", cx - 49, py + 230, 1, 0x9BB1C8);
+
+    const int box_x = px + 80;
+    const int box_y = py + 300;
+    const int box_w = pw - 160;
+    const int box_h = 42;
+
+    draw_text("Password:", box_x, py + 285, 1, 0x9BB1C8);
+
+    char password[32];
+    uint32_t password_len = 0;
+    bool show_error = false;
+
+    auto redraw_password_box = [&]() {
+        fill_rounded_rect_gradient(box_x, box_y, box_w, box_h, 6,
+                                   0x0C1C2C, 0x10253B);
+        fill_rect(box_x, box_y, box_w, 1, 0x54718D);
+
+        if (password_len == 0) {
+            draw_text("Enter password", box_x + 16, box_y + 12, 1, 0x556677);
+        } else {
+            char mask[33];
+            for (uint32_t i = 0; i < password_len; ++i) mask[i] = '*';
+            mask[password_len] = '\0';
+            draw_text(mask, box_x + 16, box_y + 12, 1, 0xFFFFFF);
+        }
+
+        if (show_error) {
+            draw_text("Invalid password, try again  (default: 1234)",
+                      cx - 170, py + 360, 1, 0xFF8866);
+        } else {
+            draw_text("Default password: 1234",
+                      cx - 116, py + 360, 1, 0x667788);
+        }
+
+        present_rect(box_x - 10, box_y - 20, box_w + 20, 100);
+    };
+
+    fill_rounded_rect_gradient(px + 160, py + 410, pw - 320, 44, 8,
+                               0x28618C, 0x17466D);
+    fill_rect(px + 160, py + 442, pw - 320, 12, 0x17466D);
+    draw_text("Sign in", cx - 28, py + 424, 1, 0xFFFFFF);
+
+    draw_text("Enter: sign in    Backspace: delete    Esc: skip",
+              cx - 175, py + 475, 1, 0x667788);
+
+    present_backbuffer();
+    redraw_password_box();
+
     for (;;) {
-        fill_rect(refresh_x, refresh_y, refresh_w, refresh_h, 0x000000);
-        draw_logo(cx - 80, ly, 160);
-        draw_text("Nova OS", cx - 32, ty, 1, 0xCCCCCC);
-
-        draw_arc(cx, acy, radius, base, base + 90, 2, 0xFFFFFF);
-        draw_arc(cx, acy, radius, base + 120, base + 210, 2, 0xFFFFFF);
-        draw_arc(cx, acy, radius, base + 240, base + 330, 2, 0xFFFFFF);
-
-        draw_text("Press any key to continue...", cx - 112, hy, 1, 0x888888);
-
-        present_rect(refresh_x, refresh_y, refresh_w, refresh_h);
-
         if ((in8(0x64) & 1) != 0) {
             uint8_t sc = in8(0x60);
-            if ((sc & 0x80) == 0 && sc != 0xE0 && sc != 0x01) {
-                fill_rect(0, 0, static_cast<int>(screen_width), static_cast<int>(screen_height), 0x000000);
+            if ((sc & 0x80) != 0) continue;
+            if (sc == 0xE0) continue;
+
+            if (sc == 0x01) {
+                fill_rect(0, 0, static_cast<int>(screen_width),
+                          static_cast<int>(screen_height), 0x000000);
                 present_backbuffer();
                 return;
             }
-        }
 
-        base += 20;
-        ++frame;
+            if (sc == 0x0E) {
+                if (password_len > 0) {
+                    --password_len;
+                    password[password_len] = '\0';
+                    show_error = false;
+                    redraw_password_box();
+                }
+                continue;
+            }
+
+            if (sc == 0x1C) {
+                password[password_len] = '\0';
+                if (password_len == 4 &&
+                    password[0] == '1' && password[1] == '2' &&
+                    password[2] == '3' && password[3] == '4') {
+                    fill_rect(0, 0, static_cast<int>(screen_width),
+                              static_cast<int>(screen_height), 0x000000);
+                    present_backbuffer();
+                    return;
+                } else {
+                    show_error = true;
+                    password_len = 0;
+                    redraw_password_box();
+                }
+                continue;
+            }
+
+            char ch = create_dialog_character(sc);
+            if (ch != '\0' && password_len < 31) {
+                password[password_len++] = ch;
+                show_error = false;
+                redraw_password_box();
+            }
+        }
         wait_pit_ticks(1);
     }
 }
@@ -3756,9 +3832,9 @@ static void draw_shutdown_screen() {
         draw_text("Shutting down...", cx - 48, ty, 1, 0xCCCCCC);
 
         int base = frame * 20;
-        draw_arc(cx, acy, radius, base, base + 90, 2, 0xFFFFFF);
-        draw_arc(cx, acy, radius, base + 120, base + 210, 2, 0xFFFFFF);
-        draw_arc(cx, acy, radius, base + 240, base + 330, 2, 0xFFFFFF);
+        draw_arc(cx, acy, radius, base, base + 90, 4, 0xFFFFFF);
+        draw_arc(cx, acy, radius, base + 120, base + 210, 4, 0xFFFFFF);
+        draw_arc(cx, acy, radius, base + 240, base + 330, 4, 0xFFFFFF);
 
         present_rect(refresh_x, refresh_y, refresh_w, refresh_h);
         wait_pit_ticks(1);
