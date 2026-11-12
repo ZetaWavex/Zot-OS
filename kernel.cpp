@@ -3692,13 +3692,15 @@ static void draw_login_screen() {
     const int cx = static_cast<int>(screen_width / 2);
     const int cy = static_cast<int>(screen_height / 2);
     const int ly = cy - 160;
-    const int acy = cy - 40;
+    const int ty = cy + 20;
+    const int acy = cy + 80;
     const int radius = 20;
+    const int hy = acy + radius + 30;
 
     int refresh_x = cx - 150;
     int refresh_y = ly - 10;
     int refresh_w = 300;
-    int refresh_h = (acy + radius + 10) - refresh_y;
+    int refresh_h = (hy + 20) - refresh_y;
 
     int base = 0;
     int frame = 0;
@@ -3708,11 +3710,13 @@ static void draw_login_screen() {
     for (;;) {
         fill_rect(refresh_x, refresh_y, refresh_w, refresh_h, 0x000000);
         draw_logo(cx - 80, ly, 160);
-        draw_text("Nova OS", cx - 32, ly + 170, 1, 0xCCCCCC);
+        draw_text("Nova OS", cx - 32, ty, 1, 0xCCCCCC);
 
         draw_arc(cx, acy, radius, base, base + 90, 2, 0xFFFFFF);
         draw_arc(cx, acy, radius, base + 120, base + 210, 2, 0xFFFFFF);
         draw_arc(cx, acy, radius, base + 240, base + 330, 2, 0xFFFFFF);
+
+        draw_text("Press any key to continue...", cx - 112, hy, 1, 0x888888);
 
         present_rect(refresh_x, refresh_y, refresh_w, refresh_h);
 
