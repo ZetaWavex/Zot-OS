@@ -3,8 +3,8 @@ import sys
 import zlib
 from pathlib import Path
 
-CURSOR_WIDTH = 14
-CURSOR_HEIGHT = 22
+CURSOR_WIDTH = 28
+CURSOR_HEIGHT = 44
 
 
 def decode_png(path):
