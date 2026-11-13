@@ -3757,6 +3757,7 @@ static void draw_login_screen() {
         }
 
         present_rect(box_x - 20, py + 275, box_w + 40, 100);
+        draw_mouse_cursor();
     };
 
     auto draw_sign_in_button = [&](bool hover) {
@@ -3767,6 +3768,7 @@ static void draw_login_screen() {
                   hover ? 0x2A5A87 : 0x17466D);
         draw_text("Sign in", cx - 28, btn_y + 14, 1, 0xFFFFFF);
         present_rect(btn_x - 4, btn_y - 4, btn_w + 8, btn_h + 8);
+        draw_mouse_cursor();
     };
 
     draw_sign_in_button(false);
@@ -3775,13 +3777,14 @@ static void draw_login_screen() {
               cx - 175, py + 500, 1, 0x556677);
 
     present_backbuffer();
-    redraw_password_box();
 
     mouse_packet_stage = 0;
     mouse_buttons = 0;
     mouse_x = cx;
     mouse_y = cy;
+    mouse_cursor_drawn = false;
     initialize_mouse();
+    draw_mouse_cursor();
 
     auto try_validate = [&]() -> bool {
         password[password_len] = '\0';
@@ -3815,38 +3818,37 @@ static void draw_login_screen() {
 
         if ((status & 0x20) != 0) {
             if (mouse_packet_stage == 0) {
-                if ((scan_code & 0x08) != 0) {
-                    mouse_packet[0] = scan_code;
-                    mouse_packet_stage = 1;
-                }
-            } else {
-                mouse_packet[mouse_packet_stage++] = scan_code;
-                if (mouse_packet_stage == 3) {
-                    mouse_packet_stage = 0;
-                    restore_mouse_cursor();
-                    handle_mouse_packet();
-                    draw_mouse_cursor();
-
-                    bool in_button = mouse_x >= btn_x && mouse_x <= btn_x + btn_w &&
-                                     mouse_y >= btn_y && mouse_y <= btn_y + btn_h;
-
-                    if (in_button != button_hovered) {
-                        button_hovered = in_button;
-                        draw_sign_in_button(button_hovered);
+                    if ((scan_code & 0x08) != 0) {
+                        mouse_packet[0] = scan_code;
+                        mouse_packet_stage = 1;
                     }
+                } else {
+                    mouse_packet[mouse_packet_stage++] = scan_code;
+                    if (mouse_packet_stage == 3) {
+                        mouse_packet_stage = 0;
 
-                    if (!button_pressed && (mouse_buttons & 1) && in_button) {
-                        button_pressed = true;
-                    } else if (button_pressed && !(mouse_buttons & 1)) {
-                        if (in_button) {
-                            button_pressed = false;
-                            if (try_validate()) return;
-                        } else {
-                            button_pressed = false;
+                        handle_mouse_packet();
+
+                        bool in_button = mouse_x >= btn_x && mouse_x <= btn_x + btn_w &&
+                                         mouse_y >= btn_y && mouse_y <= btn_y + btn_h;
+
+                        if (in_button != button_hovered) {
+                            button_hovered = in_button;
+                            draw_sign_in_button(button_hovered);
+                        }
+
+                        if (!button_pressed && (mouse_buttons & 1) && in_button) {
+                            button_pressed = true;
+                        } else if (button_pressed && !(mouse_buttons & 1)) {
+                            if (in_button) {
+                                button_pressed = false;
+                                if (try_validate()) return;
+                            } else {
+                                button_pressed = false;
+                            }
                         }
                     }
                 }
-            }
             continue;
         }
 
