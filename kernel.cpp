@@ -3777,8 +3777,11 @@ static void draw_login_screen() {
     present_backbuffer();
     redraw_password_box();
 
+    mouse_packet_stage = 0;
+    mouse_buttons = 0;
+    mouse_x = cx;
+    mouse_y = cy;
     initialize_mouse();
-    draw_mouse_cursor();
 
     auto try_validate = [&]() -> bool {
         password[password_len] = '\0';
@@ -3802,14 +3805,24 @@ static void draw_login_screen() {
     bool button_pressed = false;
 
     for (;;) {
-        if ((in8(0x64) & 1) != 0) {
-            uint8_t sc = in8(0x60);
-            uint8_t status = in8(0x64);
-            if ((status & 0x20) != 0) {
-                if (sc == 0xF8 && wait_mouse_input_ready()) {
-                    mouse_packet[0] = in8(0x60);
-                    mouse_packet[1] = in8(0x60);
-                    mouse_packet[2] = in8(0x60);
+        const uint8_t status = in8(0x64);
+        if ((status & 1) == 0) {
+            __asm__ volatile("pause");
+            continue;
+        }
+
+        const uint8_t scan_code = in8(0x60);
+
+        if ((status & 0x20) != 0) {
+            if (mouse_packet_stage == 0) {
+                if ((scan_code & 0x08) != 0) {
+                    mouse_packet[0] = scan_code;
+                    mouse_packet_stage = 1;
+                }
+            } else {
+                mouse_packet[mouse_packet_stage++] = scan_code;
+                if (mouse_packet_stage == 3) {
+                    mouse_packet_stage = 0;
                     restore_mouse_cursor();
                     handle_mouse_packet();
                     draw_mouse_cursor();
@@ -3822,61 +3835,53 @@ static void draw_login_screen() {
                         draw_sign_in_button(button_hovered);
                     }
 
-                    if (button_pressed && !in_button) {
-                        button_pressed = false;
-                    }
-
-                    if (mouse_buttons & 1) {
-                        if (in_button && !button_pressed) {
-                            button_pressed = true;
-                        }
-                    } else {
-                        if (button_pressed && in_button) {
+                    if (!button_pressed && (mouse_buttons & 1) && in_button) {
+                        button_pressed = true;
+                    } else if (button_pressed && !(mouse_buttons & 1)) {
+                        if (in_button) {
                             button_pressed = false;
                             if (try_validate()) return;
                         } else {
                             button_pressed = false;
                         }
                     }
-                    continue;
                 }
-                continue;
             }
+            continue;
+        }
 
-            if ((sc & 0x80) != 0) continue;
-            if (sc == 0xE0) continue;
+        if (scan_code == 0xE0) continue;
+        if ((scan_code & 0x80) != 0) continue;
 
-            if (sc == 0x01) {
-                restore_mouse_cursor();
-                fill_rect(0, 0, static_cast<int>(screen_width),
-                          static_cast<int>(screen_height), 0x000000);
-                present_backbuffer();
-                return;
-            }
+        if (scan_code == 0x01) {
+            restore_mouse_cursor();
+            fill_rect(0, 0, static_cast<int>(screen_width),
+                      static_cast<int>(screen_height), 0x000000);
+            present_backbuffer();
+            return;
+        }
 
-            if (sc == 0x0E) {
-                if (password_len > 0) {
-                    --password_len;
-                    password[password_len] = '\0';
-                    show_error = false;
-                    redraw_password_box();
-                }
-                continue;
-            }
-
-            if (sc == 0x1C) {
-                try_validate();
-                continue;
-            }
-
-            char ch = create_dialog_character(sc);
-            if (ch != '\0' && password_len < 31) {
-                password[password_len++] = ch;
+        if (scan_code == 0x0E) {
+            if (password_len > 0) {
+                --password_len;
+                password[password_len] = '\0';
                 show_error = false;
                 redraw_password_box();
             }
+            continue;
         }
-        wait_pit_ticks(1);
+
+        if (scan_code == 0x1C) {
+            try_validate();
+            continue;
+        }
+
+        char ch = create_dialog_character(scan_code);
+        if (ch != '\0' && password_len < 31) {
+            password[password_len++] = ch;
+            show_error = false;
+            redraw_password_box();
+        }
     }
 }
 
