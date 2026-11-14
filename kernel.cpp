@@ -3811,7 +3811,7 @@ static void draw_login_screen() {
     auto redraw_password_box = [&]() {
         restore_mouse_cursor();
         draw_password_box();
-        present_rect(box_x - 20, py + 275, box_w + 40, 100);
+        present_rect(px + 10, py + 275, pw - 20, 120);
         draw_mouse_cursor();
     };
 

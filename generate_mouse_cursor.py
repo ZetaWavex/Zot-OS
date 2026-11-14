@@ -3,7 +3,7 @@ import sys
 import zlib
 from pathlib import Path
 
-CURSOR_WIDTH = 14
+CURSOR_WIDTH = 22
 CURSOR_HEIGHT = 22
 
 
