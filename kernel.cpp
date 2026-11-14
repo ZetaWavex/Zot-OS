@@ -3728,13 +3728,13 @@ static void draw_login_screen() {
     draw_text("Nova OS", cx - 32, py + 210, 1, 0xE3EDF7);
     draw_text("Welcome back", cx - 49, py + 240, 1, 0x9BB1C8);
 
-    draw_text("Password:", box_x, py + 280, 1, 0x9BB1C8);
+    draw_text("Password:", box_x, py + 272, 1, 0x9BB1C8);
 
     char password[32];
     uint32_t password_len = 0;
     bool show_error = false;
 
-    auto redraw_password_box = [&]() {
+    auto draw_password_box = [&]() {
         fill_rounded_rect_gradient(box_x, box_y, box_w, box_h, 6,
                                    0x0C1C2C, 0x10253B);
         fill_rect(box_x, box_y, box_w, 1, 0x54718D);
@@ -3755,9 +3755,6 @@ static void draw_login_screen() {
             draw_text("Default password: 1234",
                       cx - 116, py + 360, 1, 0x667788);
         }
-
-        present_rect(box_x - 20, py + 275, box_w + 40, 100);
-        draw_mouse_cursor();
     };
 
     auto draw_sign_in_button = [&](bool hover) {
@@ -3767,16 +3764,13 @@ static void draw_login_screen() {
         fill_rect(btn_x, btn_y + btn_h - 12, btn_w, 12,
                   hover ? 0x2A5A87 : 0x17466D);
         draw_text("Sign in", cx - 28, btn_y + 14, 1, 0xFFFFFF);
-        present_rect(btn_x - 4, btn_y - 4, btn_w + 8, btn_h + 8);
-        draw_mouse_cursor();
     };
 
     draw_sign_in_button(false);
+    draw_password_box();
 
     draw_text("Enter: sign in    Backspace: delete    Esc: skip",
               cx - 175, py + 500, 1, 0x556677);
-
-    present_backbuffer();
 
     mouse_packet_stage = 0;
     mouse_buttons = 0;
@@ -3784,7 +3778,22 @@ static void draw_login_screen() {
     mouse_y = cy;
     mouse_cursor_drawn = false;
     initialize_mouse();
+    present_backbuffer();
     draw_mouse_cursor();
+
+    auto redraw_password_box = [&]() {
+        restore_mouse_cursor();
+        draw_password_box();
+        present_rect(box_x - 20, py + 275, box_w + 40, 100);
+        draw_mouse_cursor();
+    };
+
+    auto update_sign_in_button = [&](bool hover) {
+        restore_mouse_cursor();
+        draw_sign_in_button(hover);
+        present_rect(btn_x - 4, btn_y - 4, btn_w + 8, btn_h + 8);
+        draw_mouse_cursor();
+    };
 
     auto try_validate = [&]() -> bool {
         password[password_len] = '\0';
@@ -3834,7 +3843,7 @@ static void draw_login_screen() {
 
                         if (in_button != button_hovered) {
                             button_hovered = in_button;
-                            draw_sign_in_button(button_hovered);
+                            update_sign_in_button(button_hovered);
                         }
 
                         if (!button_pressed && (mouse_buttons & 1) && in_button) {
