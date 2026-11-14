@@ -31,6 +31,8 @@ static void paste_file_manager_clipboard(bool file_manager);
 
 #include <logo_data.h>
 #include <mouse_cursor_data.h>
+#include <mouse_cursor_sr.h>
+#include <mouse_cursor_an.h>
 #include <file_icons.h>
 #include <zex_apps.h>
 #include "chinese_font.h"
@@ -252,6 +254,31 @@ static void initialize_mouse_cursor() {
             mouse_cursor_coverage[index] = mouse_cursor_alpha[index];
             mouse_cursor_shade[index] = mouse_cursor_luma[index];
         }
+    }
+}
+
+enum MouseCursorKind { MOUSE_CURSOR_DEFAULT = 0, MOUSE_CURSOR_SR = 1, MOUSE_CURSOR_AN = 2 };
+
+static void set_mouse_cursor(MouseCursorKind kind) {
+    const uint8_t *alpha;
+    const uint8_t *luma;
+    switch (kind) {
+        case MOUSE_CURSOR_SR:
+            alpha = sr_mouse_cursor_alpha;
+            luma = sr_mouse_cursor_luma;
+            break;
+        case MOUSE_CURSOR_AN:
+            alpha = an_mouse_cursor_alpha;
+            luma = an_mouse_cursor_luma;
+            break;
+        default:
+            alpha = mouse_cursor_alpha;
+            luma = mouse_cursor_luma;
+            break;
+    }
+    for (int index = 0; index < MOUSE_CURSOR_WIDTH * MOUSE_CURSOR_HEIGHT; ++index) {
+        mouse_cursor_coverage[index] = alpha[index];
+        mouse_cursor_shade[index] = luma[index];
     }
 }
 
@@ -3838,8 +3865,21 @@ static void draw_login_screen() {
 
                         handle_mouse_packet();
 
+                        bool in_input = mouse_x >= box_x && mouse_x <= box_x + box_w &&
+                                        mouse_y >= box_y && mouse_y <= box_y + box_h;
                         bool in_button = mouse_x >= btn_x && mouse_x <= btn_x + btn_w &&
                                          mouse_y >= btn_y && mouse_y <= btn_y + btn_h;
+
+                        static MouseCursorKind current_cursor = MOUSE_CURSOR_DEFAULT;
+                        MouseCursorKind desired = MOUSE_CURSOR_DEFAULT;
+                        if (in_button) desired = MOUSE_CURSOR_AN;
+                        else if (in_input) desired = MOUSE_CURSOR_SR;
+                        if (desired != current_cursor) {
+                            current_cursor = desired;
+                            restore_mouse_cursor();
+                            set_mouse_cursor(current_cursor);
+                            draw_mouse_cursor();
+                        }
 
                         if (in_button != button_hovered) {
                             button_hovered = in_button;

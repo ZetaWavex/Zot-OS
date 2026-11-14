@@ -117,7 +117,7 @@ def resample_alpha(width, height, pixels):
     return result
 
 
-def write_header(path, alpha, width, height, pixels):
+def write_header(path, alpha, width, height, pixels, prefix=""):
     stride = width * 4
     luma = []
     for y in range(CURSOR_HEIGHT):
@@ -128,14 +128,17 @@ def write_header(path, alpha, width, height, pixels):
             red, green, blue = pixels[offset:offset + 3]
             luma.append((red * 77 + green * 150 + blue * 29) >> 8)
 
+    a_name = prefix + "mouse_cursor_alpha"
+    l_name = prefix + "mouse_cursor_luma"
+
     lines = [
         "#define MOUSE_CURSOR_WIDTH {}".format(CURSOR_WIDTH),
         "#define MOUSE_CURSOR_HEIGHT {}".format(CURSOR_HEIGHT),
-        "static const uint8_t mouse_cursor_alpha[] = {",
+        "static const uint8_t {}[] = {{".format(a_name),
     ]
     for start in range(0, len(alpha), 16):
         lines.append("    " + ", ".join("0x{:02X}".format(value) for value in alpha[start:start + 16]) + ",")
-    lines.extend(("};", "static const uint8_t mouse_cursor_luma[] = {"))
+    lines.extend(("};", "static const uint8_t {}[] = {{".format(l_name)))
     for start in range(0, len(luma), 16):
         lines.append("    " + ", ".join("0x{:02X}".format(value) for value in luma[start:start + 16]) + ",")
     lines.extend(("};", ""))
@@ -143,17 +146,19 @@ def write_header(path, alpha, width, height, pixels):
 
 
 def main():
-    if len(sys.argv) != 3:
-        raise SystemExit("Usage: generate_mouse_cursor.py mouse.png output.h")
+    if len(sys.argv) < 3:
+        raise SystemExit("Usage: generate_mouse_cursor.py mouse.png output.h [prefix]")
 
-    source_path, output_path = map(Path, sys.argv[1:])
+    source_path = Path(sys.argv[1])
+    output_path = Path(sys.argv[2])
+    prefix = sys.argv[3] if len(sys.argv) >= 4 else ""
     width, height, pixels = decode_png(source_path)
     alpha = resample_alpha(width, height, pixels)
-    write_header(output_path, alpha, width, height, pixels)
+    write_header(output_path, alpha, width, height, pixels, prefix)
     visible_pixels = sum(value > 0 for value in alpha)
     if visible_pixels == 0:
         raise ValueError("Mouse cursor image has no visible pixels.")
-    print(f"Generated {CURSOR_WIDTH}x{CURSOR_HEIGHT} mouse cursor alpha mask ({visible_pixels} visible pixels) from {width}x{height} PNG.")
+    print(f"Generated {CURSOR_WIDTH}x{CURSOR_HEIGHT} {prefix}mouse cursor ({visible_pixels} visible pixels) from {width}x{height} PNG.")
 
 
 if __name__ == "__main__":

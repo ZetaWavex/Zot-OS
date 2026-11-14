@@ -63,8 +63,12 @@ echo [6/9] Generating the high-resolution logo...
 python "%~dp0generate_logo.py" "%ROOT%\image\logo.png" "%OUT%\logo_data.h"
 if errorlevel 1 exit /b 1
 
-echo [6.5/9] Generating the mouse cursor sprite...
+echo [6.5/9] Generating the mouse cursor sprites...
 python "%~dp0generate_mouse_cursor.py" "%ROOT%\image\mouse.png" "%OUT%\mouse_cursor_data.h"
+if errorlevel 1 exit /b 1
+python "%~dp0generate_mouse_cursor.py" "%ROOT%\image\mouse_sr.png" "%OUT%\mouse_cursor_sr.h" "sr_"
+if errorlevel 1 exit /b 1
+python "%~dp0generate_mouse_cursor.py" "%ROOT%\image\mouse_an.png" "%OUT%\mouse_cursor_an.h" "an_"
 if errorlevel 1 exit /b 1
 
 echo [6.7/9] Embedding the file-manager images...
